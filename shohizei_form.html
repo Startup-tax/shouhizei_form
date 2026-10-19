@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>消費税判定のための事前ヒアリング</title>
+
+    <link rel="icon" href="./favicon.jpg" type="image/jpeg">
+    <link rel="apple-touch-icon" href="./logo-color-2.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1e3656; --secondary-color: #5dade2; --accent-color: #e52128;
+            --success-color: #27ae60; --light-gray: #f8f9fa; --medium-gray: #dee2e6;
+            --dark-gray: #495057; --border-radius: 8px;
+        }
+        body {
+            font-family: 'Inter', 'Helvetica Neue', Arial, 'Hiragino Sans', 'Meiryo', sans-serif;
+            line-height: 1.6; color: #333; max-width: 900px;
+            margin: 20px auto; padding: 0 20px; background-color: #f4f7f9;
+            -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+        }
+        h1 { color: var(--primary-color); text-align: center; font-weight: 700; margin-top: 0; margin-bottom: 30px; font-size: 1.6em; }
+        .logo-wrap { text-align: center; margin-bottom: 10px; }
+        .logo-wrap img { max-width: 180px; }
+        .form-container, .confirm-container, #complete, #error-box {
+            background-color: #fff; padding: 30px; border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .confirm-container, #complete { border-top: 5px solid var(--secondary-color); }
+        #error-box { border-top: 5px solid var(--accent-color); text-align: center; }
+        fieldset { border: 1px solid var(--medium-gray); padding: 20px; margin-bottom: 20px; border-radius: var(--border-radius); }
+        .fieldset-title {
+            font-weight: 700; color: var(--primary-color); font-size: 1.2em; margin: -10px 0 20px 0;
+            border-bottom: 2px solid var(--secondary-color); padding-bottom: 8px;
+        }
+        .form-group { margin-bottom: 22px; }
+        .q-label { display: block; font-weight: bold; margin-bottom: 6px; color: #34495e; }
+        .q-note { font-size: 0.85em; color: var(--dark-gray); font-weight: normal; margin-top: 2px; }
+        .required { color: var(--accent-color); font-size: 0.8em; margin-left: 6px; }
+        input[type="text"], textarea {
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: var(--border-radius);
+            box-sizing: border-box; font-family: inherit; font-size: inherit;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input:focus, textarea:focus { border-color: var(--secondary-color); box-shadow: 0 0 0 3px rgba(93,173,226,0.25); outline: none; }
+        input[readonly] { background-color: var(--light-gray); color: var(--dark-gray); }
+        textarea { min-height: 90px; resize: vertical; }
+        .radio-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        .radio-group label {
+            display: inline-flex; align-items: center; gap: 8px; font-weight: normal; margin: 0;
+            padding: 10px 16px; border: 1px solid var(--medium-gray); border-radius: var(--border-radius);
+            cursor: pointer; background: #fff; transition: background 0.2s, border-color 0.2s;
+        }
+        .radio-group label:has(input:checked) { background: #eaf4fc; border-color: var(--secondary-color); }
+        .radio-group input { margin: 0; width: 18px; height: 18px; }
+        .detail-box { margin-top: 12px; padding: 16px; background: var(--light-gray); border-radius: var(--border-radius); border-left: 4px solid var(--secondary-color); }
+        .detail-box .form-group:last-child { margin-bottom: 0; }
+        .input-suffix { display: flex; align-items: center; gap: 8px; }
+        .input-suffix input { flex: 1; text-align: right; }
+        button {
+            background-color: var(--primary-color); color: #fff; border: none; padding: 14px 28px;
+            font-size: 1em; font-weight: 700; border-radius: var(--border-radius); cursor: pointer; font-family: inherit;
+        }
+        button:hover { opacity: 0.9; }
+        button.secondary { background: #fff; color: var(--primary-color); border: 1px solid var(--primary-color); }
+        .button-row { display: flex; gap: 12px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+        .notice { background: #fff8e1; border: 1px solid #ffe082; padding: 12px 16px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 0.95em; }
+        .intro { color: var(--dark-gray); margin-bottom: 24px; font-size: 0.95em; }
+        .error-text { color: var(--accent-color); font-size: 0.9em; margin-top: 6px; }
+        .invalid { border-color: var(--accent-color) !important; }
+        .confirm-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .confirm-table th, .confirm-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--medium-gray); vertical-align: top; }
+        .confirm-table th { width: 42%; background: var(--light-gray); color: #34495e; font-weight: 700; }
+        .confirm-table td { white-space: pre-wrap; word-break: break-word; }
+        .hidden { display: none !important; }
+        #loading { text-align: center; padding: 60px 20px; }
+        .loading-logo { max-width: 120px; margin-bottom: 16px; animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .id-code { font-family: monospace; background: var(--light-gray); padding: 8px 14px; border-radius: 6px; display: inline-block; margin-top: 6px; }
+        .privacy-notice { font-size: 0.85em; color: var(--dark-gray); margin-top: 24px; }
+        #complete { text-align: center; }
+        @media (max-width: 600px) {
+            body { margin: 10px auto; padding: 0 10px; }
+            .form-container, .confirm-container, #complete, #error-box { padding: 18px; }
+            .confirm-table th { width: 38%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-wrap"><img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 Logo"></div>
+    <h1>消費税判定のための<br>事前ヒアリング</h1>
+
+    <!-- 読み込み中 -->
+    <div id="loading">
+        <img src="./favicon.jpg" alt="Logo" class="loading-logo">
+        <p id="loading-text">読み込み中...</p>
+    </div>
+
+    <!-- エラー（URL不正など） -->
+    <div id="error-box" class="hidden">
+        <h2>ページを表示できません</h2>
+        <p id="error-message"></p>
+        <p style="font-size:0.9em;color:var(--dark-gray);">お手数ですが、担当者までお問い合わせください。</p>
+    </div>
+
+    <!-- 入力フォーム -->
+    <div id="form-contents" class="form-container hidden">
+        <form id="main-form" novalidate>
+            <input type="hidden" name="client_id" id="client_id">
+
+            <div class="notice hidden" id="answered-notice">
+                このURLからはすでにご回答をいただいています。再度送信された場合は、最新の内容が有効になります。
+            </div>
+            <p class="intro">
+                翌期の消費税の判定を行うため、事前にいくつかご確認させてください。<br>
+                MTGでの方針検討に使用しますので、現時点でわかる範囲でご回答ください。
+            </p>
+
+            <fieldset>
+                <div class="fieldset-title">基本情報</div>
+                <div class="form-group">
+                    <label class="q-label" for="client_name_display">事業者名</label>
+                    <input type="text" id="client_name_display" readonly>
+                </div>
+                <div class="form-group" id="fiscal-group">
+                    <label class="q-label" for="fiscal_display">決算期</label>
+                    <input type="text" id="fiscal_display" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="q-label" for="respondent_name">回答者のお名前<span class="required">必須</span></label>
+                    <input type="text" id="respondent_name" name="respondent_name" autocomplete="name">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <div class="fieldset-title">ご回答内容</div>
+
+                <!-- Q1 -->
+                <div class="form-group" data-q="income_change">
+                    <span class="q-label">今期から大きな変動がある収入・支出はありますか？<span class="required">必須</span></span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="income_change" value="有">有</label>
+                        <label><input type="radio" name="income_change" value="無">無</label>
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="form-group" data-q="new_business">
+                    <span class="q-label">新規で開始する事業はありますか？<span class="required">必須</span></span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="new_business" value="有" data-toggle="new_business_box">有</label>
+                        <label><input type="radio" name="new_business" value="無" data-toggle="new_business_box">無</label>
+                    </div>
+                    <div class="detail-box hidden" id="new_business_box">
+                        <div class="form-group" data-q="new_business_detail">
+                            <label class="q-label" for="new_business_detail">事業内容<span class="required">必須</span></label>
+                            <textarea id="new_business_detail" name="new_business_detail" placeholder="例：〇〇の販売、△△サービスの提供 など"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="form-group" data-q="capex">
+                    <span class="q-label">1,000,000円以上の設備投資・売却の予定はありますか？<span class="required">必須</span>
+                        <div class="q-note">固定資産の購入・売却いずれも含みます。</div></span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="capex" value="有" data-toggle="capex_box">有</label>
+                        <label><input type="radio" name="capex" value="無" data-toggle="capex_box">無</label>
+                    </div>
+                    <div class="detail-box hidden" id="capex_box">
+                        <div class="form-group" data-q="capex_amount">
+                            <label class="q-label" for="capex_amount">予定金額<span class="required">必須</span></label>
+                            <div class="input-suffix">
+                                <input type="text" id="capex_amount" name="capex_amount" inputmode="numeric" placeholder="例：3,000,000">
+                                <span>円</span>
+                            </div>
+                        </div>
+                        <div class="form-group" data-q="capex_detail">
+                            <label class="q-label" for="capex_detail">内容<span class="required">必須</span></label>
+                            <textarea id="capex_detail" name="capex_detail" placeholder="例：営業用車両の購入、事務所の内装工事 など"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q4 -->
+                <div class="form-group" data-q="import_export">
+                    <span class="q-label">輸出入に関する事業を行っていますか？また、行う予定はありますか？<span class="required">必須</span></span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="import_export" value="現在行っている">現在行っている</label>
+                        <label><input type="radio" name="import_export" value="今後行う予定がある">今後行う予定がある</label>
+                        <label><input type="radio" name="import_export" value="どちらもなし">どちらもなし</label>
+                    </div>
+                </div>
+
+                <!-- Q5 -->
+                <div class="form-group" data-q="contract_switch">
+                    <span class="q-label">雇用と業務委託の契約切替はありますか？<span class="required">必須</span></span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="contract_switch" value="雇用→業務委託">雇用→業務委託</label>
+                        <label><input type="radio" name="contract_switch" value="業務委託→雇用">業務委託→雇用</label>
+                        <label><input type="radio" name="contract_switch" value="雇用⇔業務委託">雇用⇔業務委託（両方）</label>
+                        <label><input type="radio" name="contract_switch" value="どちらもなし">どちらもなし</label>
+                    </div>
+                </div>
+
+                <!-- Q6 -->
+                <div class="form-group" data-q="office_contract">
+                    <span class="q-label">事務所・社宅の契約（新規・移転）の予定はありますか？<span class="required">必須</span></span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="office_contract" value="事務所">事務所</label>
+                        <label><input type="radio" name="office_contract" value="社宅">社宅</label>
+                        <label><input type="radio" name="office_contract" value="どちらもあり">どちらもあり</label>
+                        <label><input type="radio" name="office_contract" value="どちらもなし">どちらもなし</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="q-label" for="remarks">その他、事前にお伝えしたいことがあればご記入ください（任意）</label>
+                    <textarea id="remarks" name="remarks"></textarea>
+                </div>
+            </fieldset>
+
+            <div id="form-error" class="error-text hidden" style="text-align:center;margin-bottom:12px;"></div>
+            <div class="button-row">
+                <button type="button" id="to-confirm-btn">確認画面へ</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 確認画面 -->
+    <div id="confirm-contents" class="confirm-container hidden">
+        <h2 style="text-align:center;color:var(--primary-color);margin-top:0;">ご回答内容の確認</h2>
+        <p style="text-align:center;">内容にお間違いがないかご確認のうえ、「送信する」を押してください。</p>
+        <table class="confirm-table" id="confirm-table"></table>
+        <div class="button-row">
+            <button type="button" class="secondary" id="back-btn">修正する</button>
+            <button type="button" id="submit-btn">送信する</button>
+        </div>
+    </div>
+
+    <!-- 完了 -->
+    <div id="complete" class="hidden">
+        <h2>ご回答ありがとうございました</h2>
+        <p>送信が完了いたしました。<br>いただいた内容は、MTGでの検討に使用いたします。</p>
+        <p style="font-size:0.9em;color:var(--dark-gray);">お問い合わせの際には、以下の回答IDをお知らせください。</p>
+        <div class="id-code" id="submission-id"></div>
+        <p class="privacy-notice">
+            お預かりした情報は、消費税判定の目的にのみ利用し、<br>個人情報保護法および当法人のプライバシーポリシーに基づき、厳重に管理いたします。
+        </p>
+    </div>
+
+    <script>
+        // ★新しいGAS WebアプリURLに書き換えてください
+        const GAS_WEB_APP_URL = '【新しいGAS WebアプリURL】';
+        // ★GAS側 SCRIPT_SECRET と同じ値にしてください（公開ページに含まれるため、簡易的な防御用です）
+        const MY_SECRET_KEY = '【新しい秘密キー】';
+
+        const $ = (id) => document.getElementById(id);
+        const show = (id) => $(id).classList.remove('hidden');
+        const hide = (id) => $(id).classList.add('hidden');
+
+        // 確認画面に表示する項目（表示順）
+        const CONFIRM_ITEMS = [
+            ['respondent_name', '回答者のお名前'],
+            ['income_change', '今期から大きな変動がある収入・支出'],
+            ['new_business', '新規で開始する事業'],
+            ['new_business_detail', '　事業内容', 'new_business'],
+            ['capex', '1,000,000円以上の設備投資・売却の予定'],
+            ['capex_amount', '　予定金額', 'capex'],
+            ['capex_detail', '　内容', 'capex'],
+            ['import_export', '輸出入事業'],
+            ['contract_switch', '雇用・業務委託の契約切替'],
+            ['office_contract', '事務所・社宅の契約（新規・移転）'],
+            ['remarks', 'その他']
+        ];
+
+        async function callGas(body) {
+            const res = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST', redirect: 'follow',
+                body: JSON.stringify({ ...body, secret: MY_SECRET_KEY })
+            });
+            return res.json();
+        }
+
+        function showFatal(msg) {
+            hide('loading'); hide('form-contents');
+            $('error-message').textContent = msg;
+            show('error-box');
+        }
+
+        // ---- 有/無による詳細欄の表示切替 ----
+        document.querySelectorAll('input[data-toggle]').forEach((radio) => {
+            radio.addEventListener('change', () => {
+                const box = $(radio.dataset.toggle);
+                const isYes = document.querySelector(`input[name="${radio.name}"]:checked`)?.value === '有';
+                box.classList.toggle('hidden', !isYes);
+                if (!isYes) box.querySelectorAll('input, textarea').forEach((el) => { el.value = ''; });
+            });
+        });
+
+        // ---- 金額はカンマ区切りで表示 ----
+        $('capex_amount').addEventListener('input', (e) => {
+            const digits = e.target.value.replace(/[^\d]/g, '');
+            e.target.value = digits ? Number(digits).toLocaleString('ja-JP') : '';
+        });
+
+        // ---- 値の取得 ----
+        function getValues() {
+            const v = {};
+            const f = $('main-form');
+            ['client_id', 'respondent_name', 'new_business_detail', 'capex_amount', 'capex_detail', 'remarks'].forEach((n) => {
+                v[n] = (f.elements[n]?.value || '').trim();
+            });
+            ['income_change', 'new_business', 'capex', 'import_export', 'contract_switch', 'office_contract'].forEach((n) => {
+                v[n] = f.querySelector(`input[name="${n}"]:checked`)?.value || '';
+            });
+            return v;
+        }
+
+        // ---- 入力チェック ----
+        function validate() {
+            document.querySelectorAll('.invalid').forEach((el) => el.classList.remove('invalid'));
+            const v = getValues();
+            const missing = [];
+            const mark = (key) => {
+                missing.push(key);
+                const g = document.querySelector(`[data-q="${key}"]`);
+                if (g) g.classList.add('invalid');
+            };
+            if (!v.respondent_name) { missing.push('respondent_name'); $('respondent_name').classList.add('invalid'); }
+            ['income_change', 'new_business', 'capex', 'import_export', 'contract_switch', 'office_contract'].forEach((k) => { if (!v[k]) mark(k); });
+            if (v.new_business === '有' && !v.new_business_detail) { missing.push('new_business_detail'); $('new_business_detail').classList.add('invalid'); }
+            if (v.capex === '有') {
+                if (!v.capex_amount) { missing.push('capex_amount'); $('capex_amount').classList.add('invalid'); }
+                if (!v.capex_detail) { missing.push('capex_detail'); $('capex_detail').classList.add('invalid'); }
+            }
+            return missing;
+        }
+
+        // ---- 確認画面へ ----
+        $('to-confirm-btn').addEventListener('click', () => {
+            const missing = validate();
+            const errBox = $('form-error');
+            if (missing.length > 0) {
+                errBox.textContent = '未入力の必須項目があります。赤枠の項目をご確認ください。';
+                errBox.classList.remove('hidden');
+                const first = document.querySelector('.invalid');
+                if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            errBox.classList.add('hidden');
+
+            const v = getValues();
+            const table = $('confirm-table');
+            table.innerHTML = '';
+            const addRow = (label, value) => {
+                const tr = document.createElement('tr');
+                const th = document.createElement('th'); th.textContent = label;
+                const td = document.createElement('td'); td.textContent = value;   // textContent でXSS防止
+                tr.appendChild(th); tr.appendChild(td); table.appendChild(tr);
+            };
+            addRow('事業者名', $('client_name_display').value);
+            if ($('fiscal_display').value) addRow('決算期', $('fiscal_display').value);
+            CONFIRM_ITEMS.forEach(([key, label, parent]) => {
+                if (parent && v[parent] !== '有') return;
+                let val = v[key];
+                if (key === 'capex_amount' && val) val += ' 円';
+                if (key === 'remarks' && !val) val = '（なし）';
+                addRow(label, val);
+            });
+            hide('form-contents'); show('confirm-contents');
+            window.scrollTo(0, 0);
+        });
+
+        $('back-btn').addEventListener('click', () => {
+            hide('confirm-contents'); show('form-contents');
+            window.scrollTo(0, 0);
+        });
+
+        // ---- 送信 ----
+        $('submit-btn').addEventListener('click', async () => {
+            hide('confirm-contents');
+            $('loading-text').textContent = '送信しています...';
+            show('loading');
+            try {
+                const result = await callGas({ action: 'submit', postData: getValues() });
+                hide('loading');
+                if (result.result === 'success') {
+                    $('submission-id').textContent = result.submissionId;
+                    show('complete');
+                } else {
+                    alert('送信に失敗しました: ' + result.message);
+                    show('confirm-contents');
+                }
+            } catch (err) {
+                hide('loading');
+                alert('送信中にエラーが発生しました: ' + err);
+                show('confirm-contents');
+            }
+            window.scrollTo(0, 0);
+        });
+
+        // ---- 初期化：URLの ?id=clientId_クライアント名 からクライアント情報を取得 ----
+        (async () => {
+            const raw = new URLSearchParams(window.location.search).get('id') || '';
+            const idx = raw.indexOf('_');
+            const clientId = (idx < 0 ? raw : raw.slice(0, idx)).trim();
+            if (!clientId) { showFatal('URLが正しくありません。'); return; }
+            try {
+                const info = await callGas({ action: 'getClientInfo', clientId });
+                if (info.result !== 'success') { showFatal(info.message || 'クライアント情報を取得できませんでした。'); return; }
+                $('client_id').value = clientId;
+                $('client_name_display').value = info.clientName;
+                if (info.fiscalPeriod) { $('fiscal_display').value = info.fiscalPeriod; } else { hide('fiscal-group'); }
+                if (info.answered) show('answered-notice');
+                hide('loading'); show('form-contents');
+            } catch (err) {
+                console.error(err);
+                showFatal('通信エラーが発生しました。時間をおいて再度お試しください。');
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>消費税判定 回答確認</title>
+
+    <link rel="icon" href="./favicon.jpg" type="image/jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1e3656; --secondary-color: #5dade2; --accent-color: #e52128;
+            --light-gray: #f8f9fa; --medium-gray: #dee2e6; --dark-gray: #495057; --border-radius: 8px;
+        }
+        body {
+            font-family: 'Inter', 'Helvetica Neue', Arial, 'Hiragino Sans', 'Meiryo', sans-serif;
+            line-height: 1.6; color: #333; max-width: 900px; margin: 20px auto; padding: 0 20px; background-color: #f4f7f9;
+        }
+        .logo-wrap { text-align: center; margin-bottom: 10px; }
+        .logo-wrap img { max-width: 180px; }
+        h1 { color: var(--primary-color); text-align: center; margin: 0 0 24px; font-size: 1.5em; }
+        .card { background: #fff; padding: 28px; border-radius: var(--border-radius); box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 5px solid var(--secondary-color); }
+        .head-info { display: flex; flex-wrap: wrap; gap: 8px 32px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--secondary-color); }
+        .head-info div span { display: block; font-size: 0.8em; color: var(--dark-gray); }
+        .head-info div strong { font-size: 1.15em; color: var(--primary-color); }
+        .status { display: inline-block; padding: 2px 12px; border-radius: 999px; font-size: 0.9em; font-weight: 700; }
+        .status.done { background: #e3f6ea; color: #1e8449; }
+        .status.pending { background: #fdecea; color: var(--accent-color); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--medium-gray); vertical-align: top; }
+        th { width: 40%; background: var(--light-gray); color: #34495e; font-weight: 700; }
+        td { white-space: pre-wrap; word-break: break-word; }
+        tr.sub th { padding-left: 28px; font-weight: normal; }
+        .badge { display: inline-block; padding: 2px 12px; border-radius: 999px; font-weight: 700; font-size: 0.9em; }
+        .badge.yes { background: #fff3cd; color: #8a6d00; border: 1px solid #ffe082; }
+        .badge.no { background: var(--light-gray); color: var(--dark-gray); border: 1px solid var(--medium-gray); }
+        tr.attention td, tr.attention th { background-color: #fffdf3; }
+        .pending-msg { text-align: center; padding: 40px 10px; color: var(--dark-gray); }
+        .pending-msg strong { display: block; font-size: 1.2em; color: var(--accent-color); margin-bottom: 6px; }
+        .button-row { display: flex; gap: 12px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+        button { background: #fff; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 10px 22px; font-size: 0.95em; font-weight: 700; border-radius: var(--border-radius); cursor: pointer; font-family: inherit; }
+        button:hover { background: #eaf4fc; }
+        .meta { text-align: right; font-size: 0.85em; color: var(--dark-gray); margin-top: 12px; }
+        .hidden { display: none !important; }
+        #loading, #error-box { text-align: center; padding: 50px 20px; }
+        #error-box { color: var(--accent-color); }
+        @media (max-width: 600px) {
+            body { margin: 10px auto; padding: 0 10px; }
+            .card { padding: 16px; }
+            th { width: 38%; }
+        }
+        @media print {
+            body { background: #fff; margin: 0; }
+            .button-row { display: none; }
+            .card { box-shadow: none; border-top: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-wrap"><img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 Logo"></div>
+    <h1>消費税判定 回答確認</h1>
+
+    <div id="loading">読み込み中...</div>
+    <div id="error-box" class="hidden"></div>
+
+    <div id="content" class="card hidden">
+        <div class="head-info">
+            <div><span>事業者名</span><strong id="client-name"></strong></div>
+            <div id="fiscal-box"><span>決算期</span><strong id="fiscal"></strong></div>
+            <div><span>回答状況</span><div id="status"></div></div>
+        </div>
+
+        <div id="pending-msg" class="pending-msg hidden">
+            <strong>まだ回答がありません</strong>
+            クライアントのご回答後、「最新の情報に更新」を押すと内容が表示されます。
+        </div>
+
+        <table id="answer-table" class="hidden"></table>
+        <div class="meta hidden" id="meta"></div>
+
+        <div class="button-row">
+            <button type="button" id="reload-btn">最新の情報に更新</button>
+            <button type="button" id="print-btn">印刷</button>
+        </div>
+    </div>
+
+    <script>
+        // ★新しいGAS WebアプリURLとキーに書き換えてください（shohizei_form.html と同じ値）
+        const GAS_WEB_APP_URL = '【新しいGAS WebアプリURL】';
+        const MY_SECRET_KEY = '【新しい秘密キー】';
+
+        const $ = (id) => document.getElementById(id);
+
+        // 表示項目: [ヘッダー名, 表示ラベル, 種別, 親項目(有のときだけ表示)]
+        // 種別: yn=有無バッジ / text=テキスト / money=金額 / choice=「どちらもなし」以外を強調
+        const ROWS = [
+            ['回答者名', '回答者のお名前', 'text'],
+            ['大きな変動のある収入・支出', '今期から大きな変動がある収入・支出', 'yn'],
+            ['新規事業有無', '新規で開始する事業', 'yn'],
+            ['新規事業内容', '事業内容', 'text', '新規事業有無'],
+            ['設備投資・売却有無', '1,000,000円以上の設備投資・売却の予定', 'yn'],
+            ['設備投資・売却予定金額', '予定金額', 'money', '設備投資・売却有無'],
+            ['設備投資・売却内容', '内容', 'text', '設備投資・売却有無'],
+            ['輸出入事業', '輸出入事業', 'choice'],
+            ['雇用・業務委託の契約切替', '雇用・業務委託の契約切替', 'choice'],
+            ['事務所・社宅の契約予定', '事務所・社宅の契約（新規・移転）', 'choice'],
+            ['備考', 'その他', 'text']
+        ];
+
+        function render(res) {
+            $('client-name').textContent = res.clientName;
+            if (res.fiscalPeriod) { $('fiscal').textContent = res.fiscalPeriod; $('fiscal-box').classList.remove('hidden'); }
+            else { $('fiscal-box').classList.add('hidden'); }
+
+            const status = $('status');
+            status.innerHTML = '';
+            const s = document.createElement('span');
+            s.className = 'status ' + (res.answered ? 'done' : 'pending');
+            s.textContent = res.answered ? '回答済み' : '未回答';
+            status.appendChild(s);
+
+            const table = $('answer-table');
+            table.innerHTML = '';
+
+            if (!res.answered) {
+                $('pending-msg').classList.remove('hidden');
+                table.classList.add('hidden'); $('meta').classList.add('hidden');
+                return;
+            }
+            $('pending-msg').classList.add('hidden');
+
+            const a = res.answer;
+            ROWS.forEach(([key, label, type, parent]) => {
+                if (parent && a[parent] !== '有') return;
+                let val = a[key];
+                if (val === undefined || val === null) val = '';
+                const tr = document.createElement('tr');
+                if (parent) tr.className = 'sub';
+                const th = document.createElement('th'); th.textContent = label;
+                const td = document.createElement('td');
+
+                if (type === 'yn') {
+                    const b = document.createElement('span');
+                    b.className = 'badge ' + (val === '有' ? 'yes' : 'no');
+                    b.textContent = val || '—';
+                    td.appendChild(b);
+                    if (val === '有') tr.classList.add('attention');
+                } else if (type === 'choice') {
+                    const b = document.createElement('span');
+                    const isNone = val === 'どちらもなし';
+                    b.className = 'badge ' + (isNone ? 'no' : 'yes');
+                    b.textContent = val || '—';
+                    td.appendChild(b);
+                    if (!isNone && val) tr.classList.add('attention');
+                } else if (type === 'money') {
+                    td.textContent = val === '' ? '' : Number(val).toLocaleString('ja-JP') + ' 円';
+                } else {
+                    td.textContent = (key === '備考' && !val) ? '（なし）' : val;   // textContent でXSS防止
+                }
+                tr.appendChild(th); tr.appendChild(td); table.appendChild(tr);
+            });
+            table.classList.remove('hidden');
+
+            const meta = $('meta');
+            meta.textContent = '回答日時: ' + (a['タイムスタンプ'] || '') + '　／　回答ID: ' + (a['回答ID'] || '');
+            meta.classList.remove('hidden');
+        }
+
+        async function load() {
+            $('error-box').classList.add('hidden');
+            const raw = new URLSearchParams(window.location.search).get('id') || '';
+            const idx = raw.indexOf('_');
+            const clientId = (idx < 0 ? raw : raw.slice(0, idx)).trim();
+            if (!clientId) { fail('URLが正しくありません。'); return; }
+            try {
+                const res = await (await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST', redirect: 'follow',
+                    body: JSON.stringify({ action: 'getResult', clientId, secret: MY_SECRET_KEY })
+                })).json();
+                if (res.result !== 'success') { fail(res.message || 'データを取得できませんでした。'); return; }
+                $('loading').classList.add('hidden');
+                $('content').classList.remove('hidden');
+                render(res);
+            } catch (err) {
+                console.error(err);
+                fail('通信エラーが発生しました。時間をおいて再度お試しください。');
+            }
+        }
+
+        function fail(msg) {
+            $('loading').classList.add('hidden');
+            $('content').classList.add('hidden');
+            $('error-box').textContent = msg;
+            $('error-box').classList.remove('hidden');
+        }
+
+        $('reload-btn').addEventListener('click', () => {
+            $('content').classList.add('hidden'); $('loading').classList.remove('hidden'); load();
+        });
+        $('print-btn').addEventListener('click', () => window.print());
+        load();
+    </script>
+</body>
+</html>
