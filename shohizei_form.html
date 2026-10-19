@@ -69,6 +69,8 @@
         button.secondary { background: #fff; color: var(--primary-color); border: 1px solid var(--primary-color); }
         .button-row { display: flex; gap: 12px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
         .notice { background: #fff8e1; border: 1px solid #ffe082; padding: 12px 16px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 0.95em; }
+        .preview-banner { background: #e8f4fd; border: 1px solid var(--secondary-color); color: var(--primary-color); padding: 12px 16px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 0.95em; font-weight: 700; }
+        button:disabled { opacity: 0.45; cursor: not-allowed; }
         .intro { color: var(--dark-gray); margin-bottom: 24px; font-size: 0.95em; }
         .error-text { color: var(--accent-color); font-size: 0.9em; margin-top: 6px; }
         .invalid { border-color: var(--accent-color) !important; }
@@ -130,10 +132,6 @@
                     <label class="q-label" for="fiscal_display">決算期</label>
                     <input type="text" id="fiscal_display" readonly>
                 </div>
-                <div class="form-group">
-                    <label class="q-label" for="respondent_name">回答者のお名前<span class="required">必須</span></label>
-                    <input type="text" id="respondent_name" name="respondent_name" autocomplete="name">
-                </div>
             </fieldset>
 
             <fieldset>
@@ -141,7 +139,7 @@
 
                 <!-- Q1 -->
                 <div class="form-group" data-q="income_change">
-                    <span class="q-label">今期から大きな変動がある収入・支出はありますか？<span class="required">必須</span></span>
+                    <span class="q-label">今後大きな変動がある収入・支出はありますか？<span class="required">必須</span></span>
                     <div class="radio-group">
                         <label><input type="radio" name="income_change" value="有">有</label>
                         <label><input type="radio" name="income_change" value="無">無</label>
@@ -149,23 +147,32 @@
                 </div>
 
                 <!-- Q2 -->
-                <div class="form-group" data-q="new_business">
-                    <span class="q-label">新規で開始する事業はありますか？<span class="required">必須</span></span>
+                <div class="form-group" data-q="business_change">
+                    <span class="q-label">新規で開始する事業、または廃止する事業はありますか？<span class="required">必須</span></span>
                     <div class="radio-group">
-                        <label><input type="radio" name="new_business" value="有" data-toggle="new_business_box">有</label>
-                        <label><input type="radio" name="new_business" value="無" data-toggle="new_business_box">無</label>
+                        <label><input type="radio" name="business_change" value="有" data-toggle="business_change_box">有</label>
+                        <label><input type="radio" name="business_change" value="無" data-toggle="business_change_box">無</label>
                     </div>
-                    <div class="detail-box hidden" id="new_business_box">
-                        <div class="form-group" data-q="new_business_detail">
-                            <label class="q-label" for="new_business_detail">事業内容<span class="required">必須</span></label>
-                            <textarea id="new_business_detail" name="new_business_detail" placeholder="例：〇〇の販売、△△サービスの提供 など"></textarea>
+                    <div class="detail-box hidden" id="business_change_box">
+                        <div class="form-group" data-q="business_change_detail">
+                            <label class="q-label" for="business_change_detail">事業内容<span class="required">必須</span></label>
+                            <textarea id="business_change_detail" name="business_change_detail" placeholder="例：〇〇事業の開始、△△事業の廃止 など"></textarea>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Q2-2 -->
+                <div class="form-group" data-q="ratio_change">
+                    <span class="q-label">既存事業の割合に変更はありますか？<span class="required">必須</span></span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="ratio_change" value="有">有</label>
+                        <label><input type="radio" name="ratio_change" value="無">無</label>
                     </div>
                 </div>
 
                 <!-- Q3 -->
                 <div class="form-group" data-q="capex">
-                    <span class="q-label">1,000,000円以上の設備投資・売却の予定はありますか？<span class="required">必須</span>
+                    <span class="q-label">今後1,000,000円以上の設備投資・売却の予定はありますか？<span class="required">必須</span>
                         <div class="q-note">固定資産の購入・売却いずれも含みます。</div></span>
                     <div class="radio-group">
                         <label><input type="radio" name="capex" value="有" data-toggle="capex_box">有</label>
@@ -188,11 +195,10 @@
 
                 <!-- Q4 -->
                 <div class="form-group" data-q="import_export">
-                    <span class="q-label">輸出入に関する事業を行っていますか？また、行う予定はありますか？<span class="required">必須</span></span>
+                    <span class="q-label">輸出入に関する事業を行っている、または行う予定はありますか？<span class="required">必須</span></span>
                     <div class="radio-group">
-                        <label><input type="radio" name="import_export" value="現在行っている">現在行っている</label>
-                        <label><input type="radio" name="import_export" value="今後行う予定がある">今後行う予定がある</label>
-                        <label><input type="radio" name="import_export" value="どちらもなし">どちらもなし</label>
+                        <label><input type="radio" name="import_export" value="有">有</label>
+                        <label><input type="radio" name="import_export" value="無">無</label>
                     </div>
                 </div>
 
@@ -216,11 +222,6 @@
                         <label><input type="radio" name="office_contract" value="どちらもあり">どちらもあり</label>
                         <label><input type="radio" name="office_contract" value="どちらもなし">どちらもなし</label>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="q-label" for="remarks">その他、事前にお伝えしたいことがあればご記入ください（任意）</label>
-                    <textarea id="remarks" name="remarks"></textarea>
                 </div>
             </fieldset>
 
@@ -265,17 +266,16 @@
 
         // 確認画面に表示する項目（表示順）
         const CONFIRM_ITEMS = [
-            ['respondent_name', '回答者のお名前'],
-            ['income_change', '今期から大きな変動がある収入・支出'],
-            ['new_business', '新規で開始する事業'],
-            ['new_business_detail', '　事業内容', 'new_business'],
-            ['capex', '1,000,000円以上の設備投資・売却の予定'],
+            ['income_change', '今後大きな変動がある収入・支出'],
+            ['business_change', '新規で開始する事業・廃止する事業'],
+            ['business_change_detail', '　事業内容', 'business_change'],
+            ['ratio_change', '既存事業の割合の変更'],
+            ['capex', '今後1,000,000円以上の設備投資・売却の予定'],
             ['capex_amount', '　予定金額', 'capex'],
             ['capex_detail', '　内容', 'capex'],
-            ['import_export', '輸出入事業'],
+            ['import_export', '輸出入事業（行っている／行う予定）'],
             ['contract_switch', '雇用・業務委託の契約切替'],
-            ['office_contract', '事務所・社宅の契約（新規・移転）'],
-            ['remarks', 'その他']
+            ['office_contract', '事務所・社宅の契約（新規・移転）']
         ];
 
         async function callGas(body) {
@@ -312,10 +312,10 @@
         function getValues() {
             const v = {};
             const f = $('main-form');
-            ['client_id', 'respondent_name', 'new_business_detail', 'capex_amount', 'capex_detail', 'remarks'].forEach((n) => {
+            ['client_id', 'business_change_detail', 'capex_amount', 'capex_detail'].forEach((n) => {
                 v[n] = (f.elements[n]?.value || '').trim();
             });
-            ['income_change', 'new_business', 'capex', 'import_export', 'contract_switch', 'office_contract'].forEach((n) => {
+            ['income_change', 'business_change', 'ratio_change', 'capex', 'import_export', 'contract_switch', 'office_contract'].forEach((n) => {
                 v[n] = f.querySelector(`input[name="${n}"]:checked`)?.value || '';
             });
             return v;
@@ -331,9 +331,8 @@
                 const g = document.querySelector(`[data-q="${key}"]`);
                 if (g) g.classList.add('invalid');
             };
-            if (!v.respondent_name) { missing.push('respondent_name'); $('respondent_name').classList.add('invalid'); }
-            ['income_change', 'new_business', 'capex', 'import_export', 'contract_switch', 'office_contract'].forEach((k) => { if (!v[k]) mark(k); });
-            if (v.new_business === '有' && !v.new_business_detail) { missing.push('new_business_detail'); $('new_business_detail').classList.add('invalid'); }
+            ['income_change', 'business_change', 'ratio_change', 'capex', 'import_export', 'contract_switch', 'office_contract'].forEach((k) => { if (!v[k]) mark(k); });
+            if (v.business_change === '有' && !v.business_change_detail) { missing.push('business_change_detail'); $('business_change_detail').classList.add('invalid'); }
             if (v.capex === '有') {
                 if (!v.capex_amount) { missing.push('capex_amount'); $('capex_amount').classList.add('invalid'); }
                 if (!v.capex_detail) { missing.push('capex_detail'); $('capex_detail').classList.add('invalid'); }
@@ -369,7 +368,6 @@
                 if (parent && v[parent] !== '有') return;
                 let val = v[key];
                 if (key === 'capex_amount' && val) val += ' 円';
-                if (key === 'remarks' && !val) val = '（なし）';
                 addRow(label, val);
             });
             hide('form-contents'); show('confirm-contents');
@@ -383,6 +381,7 @@
 
         // ---- 送信 ----
         $('submit-btn').addEventListener('click', async () => {
+            if (!$('client_id').value) { alert('クライアント専用のURLから開き直してください（URLにクライアントIDが含まれていないため、送信できません）。'); return; }
             hide('confirm-contents');
             $('loading-text').textContent = '送信しています...';
             show('loading');
@@ -404,24 +403,33 @@
             window.scrollTo(0, 0);
         });
 
-        // ---- 初期化：URLの ?id=clientId_クライアント名 からクライアント情報を取得 ----
+        // ---- 初期化：URLの ?id=クライアントID_事業者名 からクライアント情報を取得 ----
         (async () => {
             const raw = new URLSearchParams(window.location.search).get('id') || '';
             const idx = raw.indexOf('_');
             const clientId = (idx < 0 ? raw : raw.slice(0, idx)).trim();
-            if (!clientId) { showFatal('URLが正しくありません。'); return; }
+            const nameInUrl = idx < 0 ? '' : raw.slice(idx + 1).trim();   // 通信できないときの表示用
+
+            // 基礎URL（?id= なし）：事業者名は空欄のまま、他は通常どおり表示する
+            if (!clientId) {
+                hide('fiscal-group');
+                hide('loading'); show('form-contents');
+                return;
+            }
+            $('client_id').value = clientId;
             try {
                 const info = await callGas({ action: 'getClientInfo', clientId });
                 if (info.result !== 'success') { showFatal(info.message || 'クライアント情報を取得できませんでした。'); return; }
-                $('client_id').value = clientId;
                 $('client_name_display').value = info.clientName;
                 if (info.fiscalPeriod) { $('fiscal_display').value = info.fiscalPeriod; } else { hide('fiscal-group'); }
                 if (info.answered) show('answered-notice');
-                hide('loading'); show('form-contents');
             } catch (err) {
+                // 通信できない場合（GAS未設定など）は、URLに含まれる事業者名を表示して続行する
                 console.error(err);
-                showFatal('通信エラーが発生しました。時間をおいて再度お試しください。');
+                $('client_name_display').value = nameInUrl;
+                hide('fiscal-group');
             }
+            hide('loading'); show('form-contents');
         })();
     </script>
 </body>
