@@ -43,6 +43,7 @@
         .button-row { display: flex; gap: 12px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
         button { background: #fff; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 10px 22px; font-size: 0.95em; font-weight: 700; border-radius: var(--border-radius); cursor: pointer; font-family: inherit; }
         button:hover { background: #eaf4fc; }
+        .preview-banner { background: #e8f4fd; border: 1px solid var(--secondary-color); color: var(--primary-color); padding: 12px 16px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 0.95em; font-weight: 700; }
         .meta { text-align: right; font-size: 0.85em; color: var(--dark-gray); margin-top: 12px; }
         .hidden { display: none !important; }
         #loading, #error-box { text-align: center; padding: 50px 20px; }
@@ -67,6 +68,9 @@
     <div id="error-box" class="hidden"></div>
 
     <div id="content" class="card hidden">
+        <div class="preview-banner hidden" id="preview-banner">
+            プレビュー表示です。以下はサンプルデータで、実際のクライアントの回答ではありません。
+        </div>
         <div class="head-info">
             <div><span>事業者名</span><strong id="client-name"></strong></div>
             <div id="fiscal-box"><span>決算期</span><strong id="fiscal"></strong></div>
@@ -96,19 +100,42 @@
 
         // 表示項目: [ヘッダー名, 表示ラベル, 種別, 親項目(有のときだけ表示)]
         // 種別: yn=有無バッジ / text=テキスト / money=金額 / choice=「どちらもなし」以外を強調
-        const ROWS = [
-            ['回答者名', '回答者のお名前', 'text'],
-            ['大きな変動のある収入・支出', '今期から大きな変動がある収入・支出', 'yn'],
-            ['新規事業有無', '新規で開始する事業', 'yn'],
-            ['新規事業内容', '事業内容', 'text', '新規事業有無'],
-            ['設備投資・売却有無', '1,000,000円以上の設備投資・売却の予定', 'yn'],
-            ['設備投資・売却予定金額', '予定金額', 'money', '設備投資・売却有無'],
-            ['設備投資・売却内容', '内容', 'text', '設備投資・売却有無'],
-            ['輸出入事業', '輸出入事業', 'choice'],
-            ['雇用・業務委託の契約切替', '雇用・業務委託の契約切替', 'choice'],
-            ['事務所・社宅の契約予定', '事務所・社宅の契約（新規・移転）', 'choice'],
-            ['備考', 'その他', 'text']
-        ];
+        const CAPEX_MAX = 10;
+
+        // 表示する行を作る。種別: yn=有無バッジ / choice=「どちらもなし」以外を強調 / text / capex=設備投資1件分
+        // 行の形式: { label, type, value, sub(下位設問か), item(capex用) }
+        function buildRows(a) {
+            const g = (k) => (a[k] === undefined || a[k] === null) ? '' : a[k];
+            const rows = [];
+            rows.push({ label: '今後大きな変動がある収入・支出', type: 'yn', value: g('大きな変動のある収入・支出') });
+
+            rows.push({ label: '新規で開始する事業・廃止する事業', type: 'yn', value: g('事業の開始・廃止有無') });
+            if (g('事業の開始・廃止有無') === '有') rows.push({ label: '事業内容', type: 'text', value: g('事業の開始・廃止内容'), sub: true });
+
+            rows.push({ label: '既存事業の割合の変更', type: 'yn', value: g('既存事業の割合変更有無') });
+
+            rows.push({ label: '今後1,000,000円以上の設備投資・売却の予定', type: 'yn', value: g('設備投資・売却有無') });
+            if (g('設備投資・売却有無') === '有') {
+                for (let i = 1; i <= CAPEX_MAX; i++) {
+                    const type = g(`設備${i}_区分`), amount = g(`設備${i}_予定金額`), detail = g(`設備${i}_内容`);
+                    if (!type && amount === '' && !detail) continue;
+                    rows.push({ label: `${i}件目`, type: 'capex', sub: true, item: { type, amount, detail } });
+                }
+            }
+
+            rows.push({ label: '輸出入事業（行っている／行う予定）', type: 'yn', value: g('輸出入事業有無') });
+            if (g('輸出入事業有無') === '有') {
+                rows.push({ label: '輸入', type: 'yn', value: g('輸入有無'), sub: true });
+                rows.push({ label: '輸出', type: 'yn', value: g('輸出有無'), sub: true });
+            }
+
+            rows.push({ label: '雇用・業務委託の契約切替', type: 'choice', value: g('雇用・業務委託の契約切替') });
+
+            rows.push({ label: '事務所・社宅の契約（新規・移転）', type: 'choice', value: g('事務所・社宅の契約予定') });
+            if (g('事務所の契約内容')) rows.push({ label: '事務所の契約', type: 'badge', value: g('事務所の契約内容'), sub: true });
+            if (g('社宅の契約内容')) rows.push({ label: '社宅の契約', type: 'badge', value: g('社宅の契約内容'), sub: true });
+            return rows;
+        }
 
         function render(res) {
             $('client-name').textContent = res.clientName;
@@ -133,32 +160,36 @@
             $('pending-msg').classList.add('hidden');
 
             const a = res.answer;
-            ROWS.forEach(([key, label, type, parent]) => {
-                if (parent && a[parent] !== '有') return;
-                let val = a[key];
-                if (val === undefined || val === null) val = '';
+            const badge = (text, cls) => {
+                const el = document.createElement('span');
+                el.className = 'badge ' + cls;
+                el.textContent = text || '—';
+                return el;
+            };
+            buildRows(a).forEach((r) => {
                 const tr = document.createElement('tr');
-                if (parent) tr.className = 'sub';
-                const th = document.createElement('th'); th.textContent = label;
+                if (r.sub) tr.className = 'sub';
+                const th = document.createElement('th'); th.textContent = r.label;
                 const td = document.createElement('td');
 
-                if (type === 'yn') {
-                    const b = document.createElement('span');
-                    b.className = 'badge ' + (val === '有' ? 'yes' : 'no');
-                    b.textContent = val || '—';
-                    td.appendChild(b);
-                    if (val === '有') tr.classList.add('attention');
-                } else if (type === 'choice') {
-                    const b = document.createElement('span');
-                    const isNone = val === 'どちらもなし';
-                    b.className = 'badge ' + (isNone ? 'no' : 'yes');
-                    b.textContent = val || '—';
-                    td.appendChild(b);
-                    if (!isNone && val) tr.classList.add('attention');
-                } else if (type === 'money') {
-                    td.textContent = val === '' ? '' : Number(val).toLocaleString('ja-JP') + ' 円';
+                if (r.type === 'yn') {
+                    td.appendChild(badge(r.value, r.value === '有' ? 'yes' : 'no'));
+                    if (r.value === '有') tr.classList.add('attention');
+                } else if (r.type === 'choice') {
+                    const isNone = r.value === 'どちらもなし';
+                    td.appendChild(badge(r.value, isNone ? 'no' : 'yes'));
+                    if (!isNone && r.value) tr.classList.add('attention');
+                } else if (r.type === 'badge') {
+                    td.appendChild(badge(r.value, 'yes'));
+                } else if (r.type === 'capex') {
+                    // 区分（購入/売却）＋予定金額＋内容
+                    td.appendChild(badge(r.item.type, 'yes'));
+                    const amt = document.createElement('strong');
+                    amt.textContent = '　' + (r.item.amount === '' ? '' : Number(r.item.amount).toLocaleString('ja-JP') + ' 円');
+                    td.appendChild(amt);
+                    td.appendChild(document.createTextNode('\n' + r.item.detail));   // textNode でXSS防止
                 } else {
-                    td.textContent = (key === '備考' && !val) ? '（なし）' : val;   // textContent でXSS防止
+                    td.textContent = r.value;   // textContent でXSS防止
                 }
                 tr.appendChild(th); tr.appendChild(td); table.appendChild(tr);
             });
@@ -169,12 +200,36 @@
             meta.classList.remove('hidden');
         }
 
+        // 基礎URL（?id= なし）で開いたときに表示するサンプル
+        const SAMPLE = {
+            result: 'success', clientName: '株式会社サンプル', fiscalPeriod: '2026年12月期', answered: true,
+            answer: {
+                '大きな変動のある収入・支出': '無',
+                '事業の開始・廃止有無': '有', '事業の開始・廃止内容': '（サンプル）〇〇事業を新たに開始予定',
+                '既存事業の割合変更有無': '無',
+                '設備投資・売却有無': '有', '設備投資・売却件数': 2,
+                '設備1_区分': '購入', '設備1_予定金額': 3000000, '設備1_内容': '（サンプル）営業用車両の購入',
+                '設備2_区分': '売却', '設備2_予定金額': 1500000, '設備2_内容': '（サンプル）旧設備の売却',
+                '輸出入事業有無': '有', '輸入有無': '無', '輸出有無': '有',
+                '雇用・業務委託の契約切替': 'どちらもなし',
+                '事務所・社宅の契約予定': 'どちらもあり', '事務所の契約内容': '新規', '社宅の契約内容': '移転',
+                'タイムスタンプ': '2026/10/01 10:00', '回答ID': 'sample'
+            }
+        };
+
         async function load() {
             $('error-box').classList.add('hidden');
             const raw = new URLSearchParams(window.location.search).get('id') || '';
             const idx = raw.indexOf('_');
             const clientId = (idx < 0 ? raw : raw.slice(0, idx)).trim();
-            if (!clientId) { fail('URLが正しくありません。'); return; }
+            if (!clientId) {
+                $('loading').classList.add('hidden');
+                $('content').classList.remove('hidden');
+                $('preview-banner').classList.remove('hidden');
+                render(SAMPLE);
+                return;
+            }
+            $('preview-banner').classList.add('hidden');
             try {
                 const res = await (await fetch(GAS_WEB_APP_URL, {
                     method: 'POST', redirect: 'follow',

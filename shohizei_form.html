@@ -71,6 +71,15 @@
         .notice { background: #fff8e1; border: 1px solid #ffe082; padding: 12px 16px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 0.95em; }
         .preview-banner { background: #e8f4fd; border: 1px solid var(--secondary-color); color: var(--primary-color); padding: 12px 16px; border-radius: var(--border-radius); margin-bottom: 20px; font-size: 0.95em; font-weight: 700; }
         button:disabled { opacity: 0.45; cursor: not-allowed; }
+        .form-group.invalid { border: 2px solid var(--accent-color); border-radius: var(--border-radius); padding: 10px; }
+        .sub-question { margin-bottom: 16px; }
+        .capex-item { background: #fff; border: 1px solid var(--medium-gray); border-radius: var(--border-radius); padding: 14px; margin-bottom: 14px; }
+        .capex-item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 700; color: var(--primary-color); }
+        .capex-item .form-group { margin-bottom: 14px; }
+        .capex-item .form-group:last-child { margin-bottom: 0; }
+        button.small { padding: 6px 14px; font-size: 0.85em; }
+        button.small.danger { color: var(--accent-color); border-color: var(--accent-color); }
+        .capex-count { font-size: 0.85em; color: var(--dark-gray); margin-left: 10px; }
         .intro { color: var(--dark-gray); margin-bottom: 24px; font-size: 0.95em; }
         .error-text { color: var(--accent-color); font-size: 0.9em; margin-top: 6px; }
         .invalid { border-color: var(--accent-color) !important; }
@@ -150,8 +159,8 @@
                 <div class="form-group" data-q="business_change">
                     <span class="q-label">新規で開始する事業、または廃止する事業はありますか？<span class="required">必須</span></span>
                     <div class="radio-group">
-                        <label><input type="radio" name="business_change" value="有" data-toggle="business_change_box">有</label>
-                        <label><input type="radio" name="business_change" value="無" data-toggle="business_change_box">無</label>
+                        <label><input type="radio" name="business_change" value="有" data-toggle="business_change_box" data-show="1">有</label>
+                        <label><input type="radio" name="business_change" value="無" data-toggle="business_change_box" data-show="0">無</label>
                     </div>
                     <div class="detail-box hidden" id="business_change_box">
                         <div class="form-group" data-q="business_change_detail">
@@ -173,23 +182,15 @@
                 <!-- Q3 -->
                 <div class="form-group" data-q="capex">
                     <span class="q-label">今後1,000,000円以上の設備投資・売却の予定はありますか？<span class="required">必須</span>
-                        <div class="q-note">固定資産の購入・売却いずれも含みます。</div></span>
+                        <div class="q-note">固定資産の購入・売却いずれも含みます。複数ある場合は、「追加」ボタンで最大10件まで入力できます。</div></span>
                     <div class="radio-group">
-                        <label><input type="radio" name="capex" value="有" data-toggle="capex_box">有</label>
-                        <label><input type="radio" name="capex" value="無" data-toggle="capex_box">無</label>
+                        <label><input type="radio" name="capex" value="有" data-toggle="capex_box" data-show="1">有</label>
+                        <label><input type="radio" name="capex" value="無" data-toggle="capex_box" data-show="0">無</label>
                     </div>
                     <div class="detail-box hidden" id="capex_box">
-                        <div class="form-group" data-q="capex_amount">
-                            <label class="q-label" for="capex_amount">予定金額<span class="required">必須</span></label>
-                            <div class="input-suffix">
-                                <input type="text" id="capex_amount" name="capex_amount" inputmode="numeric" placeholder="例：3,000,000">
-                                <span>円</span>
-                            </div>
-                        </div>
-                        <div class="form-group" data-q="capex_detail">
-                            <label class="q-label" for="capex_detail">内容<span class="required">必須</span></label>
-                            <textarea id="capex_detail" name="capex_detail" placeholder="例：営業用車両の購入、事務所の内装工事 など"></textarea>
-                        </div>
+                        <div id="capex-items"></div>
+                        <button type="button" class="secondary small" id="capex-add-btn">＋ 設備投資・売却を追加</button>
+                        <span class="capex-count" id="capex-count"></span>
                     </div>
                 </div>
 
@@ -197,8 +198,24 @@
                 <div class="form-group" data-q="import_export">
                     <span class="q-label">輸出入に関する事業を行っている、または行う予定はありますか？<span class="required">必須</span></span>
                     <div class="radio-group">
-                        <label><input type="radio" name="import_export" value="有">有</label>
-                        <label><input type="radio" name="import_export" value="無">無</label>
+                        <label><input type="radio" name="import_export" value="有" data-toggle="import_export_box" data-show="1">有</label>
+                        <label><input type="radio" name="import_export" value="無" data-toggle="import_export_box" data-show="0">無</label>
+                    </div>
+                    <div class="detail-box hidden" id="import_export_box">
+                        <div class="form-group sub-question" data-q="import_flag">
+                            <span class="q-label">輸入<span class="required">必須</span></span>
+                            <div class="radio-group">
+                                <label><input type="radio" name="import_flag" value="有">有</label>
+                                <label><input type="radio" name="import_flag" value="無">無</label>
+                            </div>
+                        </div>
+                        <div class="form-group sub-question" data-q="export_flag">
+                            <span class="q-label">輸出<span class="required">必須</span></span>
+                            <div class="radio-group">
+                                <label><input type="radio" name="export_flag" value="有">有</label>
+                                <label><input type="radio" name="export_flag" value="無">無</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -217,10 +234,28 @@
                 <div class="form-group" data-q="office_contract">
                     <span class="q-label">事務所・社宅の契約（新規・移転）の予定はありますか？<span class="required">必須</span></span>
                     <div class="radio-group">
-                        <label><input type="radio" name="office_contract" value="事務所">事務所</label>
-                        <label><input type="radio" name="office_contract" value="社宅">社宅</label>
-                        <label><input type="radio" name="office_contract" value="どちらもあり">どちらもあり</label>
-                        <label><input type="radio" name="office_contract" value="どちらもなし">どちらもなし</label>
+                        <label><input type="radio" name="office_contract" value="事務所" data-toggle="office_kind_box" data-show="1">事務所</label>
+                        <label><input type="radio" name="office_contract" value="社宅" data-toggle="office_kind_box" data-show="1">社宅</label>
+                        <label><input type="radio" name="office_contract" value="どちらもあり" data-toggle="office_kind_box" data-show="1">どちらもあり</label>
+                        <label><input type="radio" name="office_contract" value="どちらもなし" data-toggle="office_kind_box" data-show="0">どちらもなし</label>
+                    </div>
+                    <div class="detail-box hidden" id="office_kind_box">
+                        <div class="form-group sub-question hidden" id="office_q_office" data-q="office_kind_office">
+                            <span class="q-label">事務所の契約<span class="required">必須</span></span>
+                            <div class="radio-group">
+                                <label><input type="radio" name="office_kind_office" value="新規">新規</label>
+                                <label><input type="radio" name="office_kind_office" value="移転">移転</label>
+                                <label><input type="radio" name="office_kind_office" value="どちらもあり">どちらもあり</label>
+                            </div>
+                        </div>
+                        <div class="form-group sub-question hidden" id="office_q_housing" data-q="office_kind_housing">
+                            <span class="q-label">社宅の契約<span class="required">必須</span></span>
+                            <div class="radio-group">
+                                <label><input type="radio" name="office_kind_housing" value="新規">新規</label>
+                                <label><input type="radio" name="office_kind_housing" value="移転">移転</label>
+                                <label><input type="radio" name="office_kind_housing" value="どちらもあり">どちらもあり</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </fieldset>
@@ -264,20 +299,6 @@
         const show = (id) => $(id).classList.remove('hidden');
         const hide = (id) => $(id).classList.add('hidden');
 
-        // 確認画面に表示する項目（表示順）
-        const CONFIRM_ITEMS = [
-            ['income_change', '今後大きな変動がある収入・支出'],
-            ['business_change', '新規で開始する事業・廃止する事業'],
-            ['business_change_detail', '　事業内容', 'business_change'],
-            ['ratio_change', '既存事業の割合の変更'],
-            ['capex', '今後1,000,000円以上の設備投資・売却の予定'],
-            ['capex_amount', '　予定金額', 'capex'],
-            ['capex_detail', '　内容', 'capex'],
-            ['import_export', '輸出入事業（行っている／行う予定）'],
-            ['contract_switch', '雇用・業務委託の契約切替'],
-            ['office_contract', '事務所・社宅の契約（新規・移転）']
-        ];
-
         async function callGas(body) {
             const res = await fetch(GAS_WEB_APP_URL, {
                 method: 'POST', redirect: 'follow',
@@ -292,60 +313,177 @@
             show('error-box');
         }
 
-        // ---- 有/無による詳細欄の表示切替 ----
+        // ---- 詳細欄の表示切替（選択肢の data-show="1" で表示 / "0" で非表示） ----
+        function resetBox(box) {
+            box.querySelectorAll('input[type="radio"]').forEach((r) => { r.checked = false; });
+            box.querySelectorAll('input[type="text"], textarea').forEach((el) => { el.value = ''; });
+            box.querySelectorAll('.detail-box').forEach((b) => b.classList.add('hidden'));
+            if (box.id === 'capex_box') resetCapexItems();
+        }
         document.querySelectorAll('input[data-toggle]').forEach((radio) => {
             radio.addEventListener('change', () => {
+                const checked = document.querySelector(`input[name="${radio.name}"]:checked`);
                 const box = $(radio.dataset.toggle);
-                const isYes = document.querySelector(`input[name="${radio.name}"]:checked`)?.value === '有';
-                box.classList.toggle('hidden', !isYes);
-                if (!isYes) box.querySelectorAll('input, textarea').forEach((el) => { el.value = ''; });
+                const showIt = checked && checked.dataset.show === '1';
+                box.classList.toggle('hidden', !showIt);
+                if (!showIt) resetBox(box);
             });
         });
 
-        // ---- 金額はカンマ区切りで表示 ----
-        $('capex_amount').addEventListener('input', (e) => {
+        // ---- 事務所・社宅：選ばれた対象（事務所／社宅）ごとに「新規・移転」を聞く ----
+        function updateOfficeQuestions() {
+            const val = document.querySelector('input[name="office_contract"]:checked')?.value || '';
+            [['office_q_office', ['事務所', 'どちらもあり']], ['office_q_housing', ['社宅', 'どちらもあり']]].forEach(([id, vals]) => {
+                const q = $(id);
+                const visible = vals.includes(val);
+                q.classList.toggle('hidden', !visible);
+                if (!visible) q.querySelectorAll('input[type="radio"]').forEach((r) => { r.checked = false; });
+            });
+        }
+        document.querySelectorAll('input[name="office_contract"]').forEach((r) => r.addEventListener('change', updateOfficeQuestions));
+
+        // ---- 設備投資・売却（最大10件まで追加できる） ----
+        const MAX_CAPEX = 10;
+        let capexUid = 0;   // ラジオボタンのname重複を避けるための通し番号
+
+        function addCapexItem() {
+            const container = $('capex-items');
+            if (container.children.length >= MAX_CAPEX) return;
+            const uid = ++capexUid;
+            const item = document.createElement('div');
+            item.className = 'capex-item';
+            item.innerHTML = `
+                <div class="capex-item-head">
+                    <span class="capex-no"></span>
+                    <button type="button" class="secondary small danger capex-remove">削除</button>
+                </div>
+                <div class="form-group capex-g-type">
+                    <span class="q-label">区分<span class="required">必須</span></span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="capex_type_${uid}" value="購入">購入</label>
+                        <label><input type="radio" name="capex_type_${uid}" value="売却">売却</label>
+                    </div>
+                </div>
+                <div class="form-group capex-g-amount">
+                    <label class="q-label" for="capex_amount_${uid}">予定金額<span class="required">必須</span></label>
+                    <div class="input-suffix">
+                        <input type="text" id="capex_amount_${uid}" class="capex-amount" inputmode="numeric" placeholder="例：3,000,000">
+                        <span>円</span>
+                    </div>
+                </div>
+                <div class="form-group capex-g-detail">
+                    <label class="q-label" for="capex_detail_${uid}">内容<span class="required">必須</span></label>
+                    <textarea id="capex_detail_${uid}" class="capex-detail" placeholder="例：営業用車両の購入、事務所の内装工事 など"></textarea>
+                </div>`;
+            item.querySelector('.capex-remove').addEventListener('click', () => { item.remove(); updateCapexUI(); });
+            container.appendChild(item);
+            updateCapexUI();
+        }
+        function resetCapexItems() {
+            $('capex-items').innerHTML = '';
+            addCapexItem();
+        }
+        function updateCapexUI() {
+            const items = $('capex-items').querySelectorAll('.capex-item');
+            items.forEach((it, i) => {
+                it.querySelector('.capex-no').textContent = `${i + 1}件目`;
+                it.querySelector('.capex-remove').classList.toggle('hidden', items.length === 1);   // 1件目だけのときは削除不可
+            });
+            $('capex-add-btn').disabled = items.length >= MAX_CAPEX;
+            $('capex-count').textContent = `${items.length} / ${MAX_CAPEX} 件`;
+        }
+        $('capex-add-btn').addEventListener('click', addCapexItem);
+        // 金額はカンマ区切りで表示（追加された入力欄にも効くようイベント委譲）
+        $('capex-items').addEventListener('input', (e) => {
+            if (!e.target.classList.contains('capex-amount')) return;
             const digits = e.target.value.replace(/[^\d]/g, '');
             e.target.value = digits ? Number(digits).toLocaleString('ja-JP') : '';
         });
+        addCapexItem();
 
         // ---- 値の取得 ----
         function getValues() {
             const v = {};
             const f = $('main-form');
-            ['client_id', 'business_change_detail', 'capex_amount', 'capex_detail'].forEach((n) => {
+            ['client_id', 'business_change_detail'].forEach((n) => {
                 v[n] = (f.elements[n]?.value || '').trim();
             });
-            ['income_change', 'business_change', 'ratio_change', 'capex', 'import_export', 'contract_switch', 'office_contract'].forEach((n) => {
+            ['income_change', 'business_change', 'ratio_change', 'capex', 'import_flag', 'export_flag',
+             'import_export', 'contract_switch', 'office_contract', 'office_kind_office', 'office_kind_housing'].forEach((n) => {
                 v[n] = f.querySelector(`input[name="${n}"]:checked`)?.value || '';
             });
+            v.capex_items = Array.from($('capex-items').querySelectorAll('.capex-item')).map((it) => ({
+                type: it.querySelector('input[type="radio"]:checked')?.value || '',
+                amount: it.querySelector('.capex-amount').value.trim(),
+                detail: it.querySelector('.capex-detail').value.trim()
+            }));
             return v;
         }
 
-        // ---- 入力チェック ----
+        // ---- 入力チェック（問題があれば、赤枠を付けてメッセージの配列を返す） ----
         function validate() {
             document.querySelectorAll('.invalid').forEach((el) => el.classList.remove('invalid'));
             const v = getValues();
-            const missing = [];
-            const mark = (key) => {
-                missing.push(key);
-                const g = document.querySelector(`[data-q="${key}"]`);
-                if (g) g.classList.add('invalid');
-            };
-            ['income_change', 'business_change', 'ratio_change', 'capex', 'import_export', 'contract_switch', 'office_contract'].forEach((k) => { if (!v[k]) mark(k); });
-            if (v.business_change === '有' && !v.business_change_detail) { missing.push('business_change_detail'); $('business_change_detail').classList.add('invalid'); }
-            if (v.capex === '有') {
-                if (!v.capex_amount) { missing.push('capex_amount'); $('capex_amount').classList.add('invalid'); }
-                if (!v.capex_detail) { missing.push('capex_detail'); $('capex_detail').classList.add('invalid'); }
+            const problems = [];
+            const markQ = (key) => { document.querySelector(`[data-q="${key}"]`)?.classList.add('invalid'); problems.push('required'); };
+            const markEl = (el) => { el.classList.add('invalid'); problems.push('required'); };
+
+            ['income_change', 'business_change', 'ratio_change', 'capex', 'import_export', 'contract_switch', 'office_contract']
+                .forEach((k) => { if (!v[k]) markQ(k); });
+
+            if (v.business_change === '有' && !v.business_change_detail) markEl($('business_change_detail'));
+
+            if (v.import_export === '有') {
+                if (!v.import_flag) markQ('import_flag');
+                if (!v.export_flag) markQ('export_flag');
             }
-            return missing;
+
+            if (['事務所', 'どちらもあり'].includes(v.office_contract) && !v.office_kind_office) markQ('office_kind_office');
+            if (['社宅', 'どちらもあり'].includes(v.office_contract) && !v.office_kind_housing) markQ('office_kind_housing');
+
+            if (v.capex === '有') {
+                $('capex-items').querySelectorAll('.capex-item').forEach((it, i) => {
+                    const d = v.capex_items[i];
+                    if (!d.type) { it.querySelector('.capex-g-type').classList.add('invalid'); problems.push('required'); }
+                    if (!d.amount) markEl(it.querySelector('.capex-amount'));
+                    if (!d.detail) markEl(it.querySelector('.capex-detail'));
+                });
+            }
+            return problems;
+        }
+
+        // ---- 確認画面に表示する行を作る ----
+        function buildConfirmRows(v) {
+            const rows = [];
+            rows.push(['今後大きな変動がある収入・支出', v.income_change]);
+            rows.push(['新規で開始する事業・廃止する事業', v.business_change]);
+            if (v.business_change === '有') rows.push(['　事業内容', v.business_change_detail]);
+            rows.push(['既存事業の割合の変更', v.ratio_change]);
+            rows.push(['今後1,000,000円以上の設備投資・売却の予定', v.capex]);
+            if (v.capex === '有') {
+                v.capex_items.forEach((it, i) => {
+                    rows.push([`　${i + 1}件目`, `区分：${it.type}\n予定金額：${it.amount} 円\n内容：${it.detail}`]);
+                });
+            }
+            rows.push(['輸出入事業（行っている／行う予定）', v.import_export]);
+            if (v.import_export === '有') {
+                rows.push(['　輸入', v.import_flag]);
+                rows.push(['　輸出', v.export_flag]);
+            }
+            rows.push(['雇用・業務委託の契約切替', v.contract_switch]);
+            rows.push(['事務所・社宅の契約（新規・移転）', v.office_contract]);
+            if (v.office_kind_office) rows.push(['　事務所の契約', v.office_kind_office]);
+            if (v.office_kind_housing) rows.push(['　社宅の契約', v.office_kind_housing]);
+            return rows;
         }
 
         // ---- 確認画面へ ----
         $('to-confirm-btn').addEventListener('click', () => {
-            const missing = validate();
+            const problems = validate();
             const errBox = $('form-error');
-            if (missing.length > 0) {
-                errBox.textContent = '未入力の必須項目があります。赤枠の項目をご確認ください。';
+            if (problems.length > 0) {
+                const custom = problems.filter((p) => p !== 'required');
+                errBox.textContent = custom.length > 0 ? custom[0] : '未入力の必須項目があります。赤枠の項目をご確認ください。';
                 errBox.classList.remove('hidden');
                 const first = document.querySelector('.invalid');
                 if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -364,12 +502,7 @@
             };
             addRow('事業者名', $('client_name_display').value);
             if ($('fiscal_display').value) addRow('決算期', $('fiscal_display').value);
-            CONFIRM_ITEMS.forEach(([key, label, parent]) => {
-                if (parent && v[parent] !== '有') return;
-                let val = v[key];
-                if (key === 'capex_amount' && val) val += ' 円';
-                addRow(label, val);
-            });
+            buildConfirmRows(v).forEach(([label, value]) => addRow(label, value));
             hide('form-contents'); show('confirm-contents');
             window.scrollTo(0, 0);
         });
